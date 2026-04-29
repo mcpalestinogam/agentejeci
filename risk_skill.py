@@ -111,11 +111,56 @@ def run_risk_agent(user_prompt: str, model: str = "qwen2.5:14b-instruct-q4_K_M")
         print(f"🔧 Tool solicitado: {func_name}")
         print(f"📥 Args crudos: {args_str}\n")
 
-        # 3️⃣ Validar y ejecutar
+        # 3️⃣ Validar y ejecutar con manejo robusto de errores
         try:
-            params = RiskInput.model_validate_json(args_str)
+            # Intentar parsear directamente primero
+            try:
+                params = RiskInput.model_validate_json(args_str)
+            except ValidationError:
+                # Si falla, intentar normalizar los datos (el LLM puede usar variaciones)
+                import re
+                # Limpiar posibles caracteres extraños o formateo incorrecto
+                clean_args = re.sub(r',\s*}', '}', args_str)
+                clean_args = re.sub(r',\s*]', ']', clean_args)
+                
+                # Mapeo de alias comunes que el LLM podría usar
+                alias_map = {
+                    'entry': 'entry_price',
+                    'price': 'entry_price',
+                    'atr_value': 'atr',
+                    'risk': 'risk_percent',
+                    'risk_pct': 'risk_percent',
+                    'balance': 'capital',
+                    'account': 'capital',
+                    'equity': 'capital',
+                    'multiplier': 'atr_multiplier',
+                    'atr_mult': 'atr_multiplier',
+                    'dir': 'direction',
+                    'side': 'direction',
+                    'lot': 'lot_size',
+                    'size': 'lot_size'
+                }
+                
+                # Parsear como dict y normalizar claves
+                import json as json_lib
+                raw_dict = json_lib.loads(clean_args)
+                normalized_dict = {}
+                
+                for key, value in raw_dict.items():
+                    normalized_key = alias_map.get(key.lower(), key.lower())
+                    # Normalizar dirección a minúsculas
+                    if normalized_key == 'direction':
+                        normalized_dict[normalized_key] = str(value).lower()
+                    else:
+                        normalized_dict[normalized_key] = value
+                
+                params = RiskInput(**normalized_dict)
+            
             result = calculate_risk(params)
             result_json = result.model_dump_json()
+
+            print(f"✅ Parámetros validados: {params}\n")
+            print(f"📤 Resultado: {result.message}\n")
 
             # 4️⃣ Inyectar resultado al contexto y pedir respuesta final
             messages.append(message)
