@@ -92,11 +92,12 @@ def run_risk_agent(user_prompt: str, model: str = "qwen2.5:14b-instruct-q4_K_M")
     messages = [{"role": "user", "content": user_prompt}]
 
     # 1️⃣ Primera llamada: El LLM decide si usar la herramienta
+    # Nota: Los parámetros de generación van dentro de 'options'
     response = ollama.chat(
         model=model,
         messages=messages,
         tools=tools,
-        temperature=0.0  # Crucial para tool calling determinista
+        options={"temperature": 0.0}  # Crucial para tool calling determinista
     )
 
     message = response["message"]
@@ -124,7 +125,7 @@ def run_risk_agent(user_prompt: str, model: str = "qwen2.5:14b-instruct-q4_K_M")
                 "tool_call_id": "risk_calc_001"  # Ollama ignora ID si no está, pero es buena práctica
             })
 
-            final_response = ollama.chat(model=model, messages=messages, temperature=0.3)
+            final_response = ollama.chat(model=model, messages=messages, options={"temperature": 0.3})
             return final_response["message"]["content"]
 
         except ValidationError as e:
