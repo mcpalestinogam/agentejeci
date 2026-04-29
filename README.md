@@ -24,9 +24,27 @@ Skill profesional de cálculo de riesgo para trading, diseñada para ser utiliza
 
 ## 🔧 Requisitos
 
+### Instalación con `uv` (recomendado)
+
 ```bash
-pip install ollama pydantic
+# Crear entorno virtual y activarlo
+uv venv
+source .venv/bin/activate  # En Windows: .venv\Scripts\activate
+
+# Instalar dependencias
+uv pip install ollama pydantic
 ```
+
+### Alternativa: Entorno automático con `uv run`
+
+Si prefieres no gestionar el entorno manualmente, puedes usar `uv run`:
+
+```bash
+uv run python examples_usage.py
+uv run python test_risk_skill.py
+```
+
+Esto creará un entorno temporal e instalará las dependencias automáticamente.
 
 Necesitas tener **Ollama** corriendo con el modelo Qwen2.5:
 
@@ -61,7 +79,11 @@ print(respuesta)
 ### Ejecutar ejemplos completos
 
 ```bash
+# Con entorno activado
 python examples_usage.py
+
+# O con uv run (sin activar entorno)
+uv run python examples_usage.py
 ```
 
 Esto ejecutará 5 escenarios:
@@ -74,7 +96,11 @@ Esto ejecutará 5 escenarios:
 ### Ejecutar tests unitarios
 
 ```bash
+# Con entorno activado
 python test_risk_skill.py
+
+# O con uv run (sin activar entorno)
+uv run python test_risk_skill.py
 ```
 
 ## 📐 Fórmulas Utilizadas
